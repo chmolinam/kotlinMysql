@@ -1,0 +1,192 @@
+**********************************
+build gradle app
+
+implementation 'com.android.volley:volley:1.1.1'
+
+*********************************
+strings.xml
+
+<resources>
+    <string name="app_name">komys</string>
+    <array name="days">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </array>
+</resources>
+
+android manisfest.xml
+agregar en debajo de manisfest
+
+<uses-permission android:name="android.permission.INTERNET"/>
+ <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+agregar archivo kotling class
+VolleySinglenton.tk
+
+
+import android.app.Application
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.toolbox.Volley
+
+
+class VolleySingleton : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        instance = this
+    }
+
+    val requestQueue: RequestQueue? = null
+        get() {
+            if (field == null) {
+                return Volley.newRequestQueue(applicationContext)
+            }
+            return field
+        }
+
+    fun  addToRequestQueue(request: Request) {
+        request.tag = TAG
+        requestQueue?.add(request)
+    }
+
+    companion object {
+        private val TAG = VolleySingleton::class.java.simpleName
+        @get:Synchronized var instance: VolleySingleton? = null
+            private set
+    }
+***************************************
+    crear en mainActivity.tk
+
+  
+
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+
+import android.widget.*
+import com.android.volley.AuthFailureError
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.VolleyError
+import com.android.volley.toolbox.StringRequest
+import org.json.JSONException
+import org.json.JSONObject
+import android.widget.Toast
+
+
+class MainActivity : AppCompatActivity() {
+    var activity: EditText? = null
+    var day: Spinner? = null
+    val addUrl : String = "http://localhost:80/android/addActivity.php"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        //finding views
+        activity = findViewById(R.id.activity)
+        day = findViewById(R.id.day)
+        val btnAaddActivity = findViewById<Button>(R.id.addactivity)
+        btnAaddActivity.setOnClickListener {
+            //we send user data to database
+            addActivity()
+        }
+
+    }
+
+    private fun addActivity() {
+        val getActivity = activity?.text.toString()
+        val getDay = day?.selectedItem.toString()
+        val stringRequest = object : StringRequest(Request.Method.POST,addUrl,Response.Listener{
+            response ->
+            try {
+                val obj = JSONObject(response)
+                Toast.makeText(applicationContext, obj.getString("message"), Toast.LENGTH_SHORT).show()
+            }catch (e: JSONException){
+                e.printStackTrace()
+            }
+
+        }, object : Response.ErrorListener{
+            override fun onErrorResponse(volleyError: VolleyError) {
+                Toast.makeText(applicationContext, volleyError.message, Toast.LENGTH_LONG).show()
+            }
+        }){
+            @Throws(AuthFailureError::class)
+            override fun getParams():  Map<String, String>  {
+                val params = HashMap<String, String>()
+                params.put("activity", getActivity)
+                params.put("day", getDay)
+                return params
+            }
+        }
+        VolleySingleton.instance?.addToRequestQueue(stringRequest)
+    }
+}
+
+*****************************
+diseño
+activity_main.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/weeklyactivity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
+        android:text="WEEKLY ACTIVITIES"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/activity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/weeklyactivity"
+        android:layout_marginTop="88dp"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="Activities"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/weeklyactivity" />
+
+    <Spinner
+        android:id="@+id/day"
+        android:layout_width="304dp"
+        android:layout_height="43dp"
+        android:layout_below="@+id/activity"
+        android:layout_marginTop="108dp"
+        android:entries="@array/days"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/activity" />
+
+    <Button
+        android:id="@+id/addactivity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:text="Add Activity"
+        android:layout_below="@+id/day"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/day"
+        app:layout_constraintVertical_bias="0.0" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
