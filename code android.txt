@@ -19,11 +19,13 @@ strings.xml
     </array>
 </resources>
 
+***********************************
 android manisfest.xml
 agregar en debajo de manisfest
 
 <uses-permission android:name="android.permission.INTERNET"/>
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+**********************************
 
 agregar archivo kotling class
 VolleySinglenton.tk
@@ -49,7 +51,7 @@ class VolleySingleton : Application() {
             return field
         }
 
-    fun  addToRequestQueue(request: Request) {
+    fun <t> addToRequestQueue(request: Request<t>) {
         request.tag = TAG
         requestQueue?.add(request)
     }
@@ -59,6 +61,7 @@ class VolleySingleton : Application() {
         @get:Synchronized var instance: VolleySingleton? = null
             private set
     }
+}
 ***************************************
     crear en mainActivity.tk
 
@@ -81,7 +84,7 @@ import android.widget.Toast
 class MainActivity : AppCompatActivity() {
     var activity: EditText? = null
     var day: Spinner? = null
-    val addUrl : String = "http://localhost:80/android/addActivity.php"
+    val addUrl : String = "http://127.0.0.1:80/android/addActivity.php"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -125,7 +128,6 @@ class MainActivity : AppCompatActivity() {
         VolleySingleton.instance?.addToRequestQueue(stringRequest)
     }
 }
-
 *****************************
 diseño
 activity_main.xml
